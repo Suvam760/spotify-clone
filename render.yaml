@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: nexa-music
+    runtime: node
+    plan: free
+    buildCommand: npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: HOST
+        value: 0.0.0.0
+      - key: SEARCH_REGION
+        value: IN
+      - key: CACHE_TTL_SECONDS
+        value: "900"
+      - key: YOUTUBE_API_KEY
+        sync: false
+
