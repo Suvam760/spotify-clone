@@ -29,6 +29,7 @@ import { StatsModal } from './components/StatsModal';
 import { ShareModal } from './components/ShareModal';
 import { ProfileModal } from './components/ProfileModal';
 import { AuthModal } from './components/AuthModal';
+import { LoginPage } from './components/LoginPage';
 import { CategoriesView } from './components/CategoriesView';
 import { FavouritesView } from './components/FavouritesView';
 import { HistoryView } from './components/HistoryView';
@@ -729,7 +730,7 @@ export default function App() {
             setAddingTrackToPlaylist(null);
             setIsPlaylistModalOpen(true);
           }}
-          onOpenAuth={() => setIsAuthOpen(true)}
+          onOpenAuth={() => setActiveTab('login')}
         />
 
         {/* Center Main Stage */}
@@ -760,7 +761,7 @@ export default function App() {
             onSelectSortBy={setSortBy}
             onOpenAudioSettings={() => setIsAudioSettingsOpen(true)}
             user={user}
-            onOpenAuth={() => setIsAuthOpen(true)}
+            onOpenAuth={() => setActiveTab('login')}
             onOpenProfile={() => setIsProfileOpen(true)}
           />
 
@@ -819,7 +820,16 @@ export default function App() {
           )}
 
           {/* VIEWS */}
-          {activeTab === 'search' ? (
+          {activeTab === 'login' ? (
+            <LoginPage
+              onLoginSuccess={(u) => {
+                handleLoginSuccess(u);
+                setActiveTab('home');
+              }}
+              onCancel={() => setActiveTab('home')}
+              showToast={showToast}
+            />
+          ) : activeTab === 'search' ? (
             <section className="page-section search-results-section">
               <div className="section-header-row">
                 <div>
@@ -1005,7 +1015,7 @@ export default function App() {
               }}
               onOpenNotifications={() => showToast('You are all caught up on new releases!', 'info')}
               onOpenProfile={() => setIsProfileOpen(true)}
-              onOpenAuth={() => setIsAuthOpen(true)}
+              onOpenAuth={() => setActiveTab('login')}
               onSeeAllCategory={(cat, label) => handleCategorySelect(cat, label)}
             />
           )}
@@ -1231,7 +1241,7 @@ export default function App() {
         onClose={() => setIsProfileOpen(false)}
         onOpenAuth={() => {
           setIsProfileOpen(false);
-          setIsAuthOpen(true);
+          setActiveTab('login');
         }}
         onLogout={handleLogout}
       />

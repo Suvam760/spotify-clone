@@ -124,6 +124,16 @@ export const Sidebar = ({
           <BarChart3 size={19} />
           <span>Listening Insights</span>
         </button>
+
+        {!user?.isLoggedIn && (
+          <button
+            className={`nav-item nav-item-login-highlight ${activeTab === 'login' ? 'active' : ''}`}
+            onClick={() => { setActiveTab('login'); onCloseMobile?.(); }}
+          >
+            <Sparkles size={19} color="#a855f7" />
+            <span>Login / OTP</span>
+          </button>
+        )}
       </nav>
 
       <div className="moods-section">

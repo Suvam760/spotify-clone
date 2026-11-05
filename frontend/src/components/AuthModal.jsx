@@ -385,3 +385,4 @@ export const AuthModal = ({
     </div>
   );
 };
+
