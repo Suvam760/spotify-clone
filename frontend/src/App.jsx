@@ -28,6 +28,7 @@ import { AudioSettingsModal } from './components/AudioSettingsModal';
 import { StatsModal } from './components/StatsModal';
 import { ShareModal } from './components/ShareModal';
 import { ProfileModal } from './components/ProfileModal';
+import { AuthModal } from './components/AuthModal';
 import { CategoriesView } from './components/CategoriesView';
 import { FavouritesView } from './components/FavouritesView';
 import { HistoryView } from './components/HistoryView';
@@ -113,6 +114,13 @@ export default function App() {
     try { window.localStorage.setItem('nexa-app-theme', JSON.stringify(theme)); } catch {}
   }, [theme]);
 
+  // Same-vibe autoplay preference
+  const [autoPlaySimilarVibe, setAutoPlaySimilarVibe] = useState(() => readStored('nexa-autoplay-vibe', true));
+
+  useEffect(() => {
+    try { window.localStorage.setItem('nexa-autoplay-vibe', JSON.stringify(autoPlaySimilarVibe)); } catch {}
+  }, [autoPlaySimilarVibe]);
+
   // Player state
   const [currentTrack, setCurrentTrack] = useState(EMPTY_TRACK);
   const [playbackQueue, setPlaybackQueue] = useState([]);
@@ -167,6 +175,16 @@ export default function App() {
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [shareItem, setShareItem] = useState(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+
+  const handleLoginSuccess = (userData) => {
+    setUser(userData);
+  };
+
+  const handleLogout = () => {
+    setUser({ ...CURRENT_USER, isLoggedIn: false });
+    showToast('Signed out of Nexa', 'info');
+  };
 
   const [isLoadingTrending, setIsLoadingTrending] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
@@ -378,11 +396,68 @@ export default function App() {
     playTrack(nextTrack, queue, true);
   };
 
+  const playSimilarVibeSong = useCallback(async (baseTrack) => {
+    if (!baseTrack?.videoId) return;
+
+    // Clean artist and title for search query
+    const cleanArtist = (baseTrack.artist || '')
+      .replace(/\s*-\s*Topic/i, '')
+      .replace(/VEVO/i, '')
+      .replace(/Official.*$/i, '')
+      .trim();
+
+    const cleanTitle = (baseTrack.title || '')
+      .replace(/\[.*?\]|\(.*?\)/g, '')
+      .replace(/ft\..*|feat\..*/i, '')
+      .trim();
+
+    const queryTerm = `${cleanArtist} ${cleanTitle} vibe songs`.trim();
+
+    try {
+      const data = await apiGet(`/api/search?q=${encodeURIComponent(queryTerm)}&limit=15`);
+      const results = (data.results || []).map(mapTrack).filter(Boolean);
+
+      const recentIds = new Set(recentlyPlayed.map((t) => t.id));
+      recentIds.add(baseTrack.id);
+
+      let nextPick = results.find((t) => !recentIds.has(t.id));
+      if (!nextPick) {
+        nextPick = results.find((t) => t.id !== baseTrack.id) || results[0];
+      }
+
+      if (nextPick && nextPick.videoId) {
+        showToast(`✨ Same Vibe Autoplay: ${nextPick.title.slice(0, 32)}…`, 'info');
+        setPlaybackQueue((prev) => {
+          const exists = prev.some((t) => t.id === nextPick.id);
+          return exists ? prev : [...prev, nextPick];
+        });
+        playTrack(nextPick, [...playbackQueue, nextPick], true);
+        return;
+      }
+    } catch {
+      // Ignore API errors, fallback to local pool below
+    }
+
+    // Local fallback pool
+    const pool = [...recommendedTracks, ...trendingTracks, ...favorites];
+    const candidate = pool.find((t) => t.id !== baseTrack.id && t.videoId);
+    if (candidate) {
+      showToast(`✨ Same Vibe Autoplay: ${candidate.title.slice(0, 32)}…`, 'info');
+      playTrack(candidate, playbackQueue, true);
+    } else {
+      handleNext();
+    }
+  }, [recentlyPlayed, playbackQueue, recommendedTracks, trendingTracks, favorites, showToast]);
+
   const handleEnded = () => {
     if (repeatMode === 'one') {
       playerRef.current?.seekTo?.(0, true);
       playerRef.current?.playVideo?.();
       setCurrentTime(0);
+      return;
+    }
+    if (autoPlaySimilarVibe && currentTrack?.videoId) {
+      playSimilarVibeSong(currentTrack);
       return;
     }
     handleNext();
@@ -629,6 +704,7 @@ export default function App() {
 
   return (
     <div className={`nexa-app-root theme-${theme}`}>
+      {isPlaying && <div className="nexa-ambient-backglow" aria-hidden="true" />}
       <div className="app-layout-container">
         {/* Left Navigation Sidebar */}
         <Sidebar
@@ -653,6 +729,7 @@ export default function App() {
             setAddingTrackToPlaylist(null);
             setIsPlaylistModalOpen(true);
           }}
+          onOpenAuth={() => setIsAuthOpen(true)}
         />
 
         {/* Center Main Stage */}
@@ -682,6 +759,9 @@ export default function App() {
             sortBy={sortBy}
             onSelectSortBy={setSortBy}
             onOpenAudioSettings={() => setIsAudioSettingsOpen(true)}
+            user={user}
+            onOpenAuth={() => setIsAuthOpen(true)}
+            onOpenProfile={() => setIsProfileOpen(true)}
           />
 
           {statusMessage && (
@@ -925,6 +1005,7 @@ export default function App() {
               }}
               onOpenNotifications={() => showToast('You are all caught up on new releases!', 'info')}
               onOpenProfile={() => setIsProfileOpen(true)}
+              onOpenAuth={() => setIsAuthOpen(true)}
               onSeeAllCategory={(cat, label) => handleCategorySelect(cat, label)}
             />
           )}
@@ -995,6 +1076,14 @@ export default function App() {
           if (currentTrack.videoId) setIsFullScreenOpen(true);
         }}
         onOpenAudioSettings={() => setIsAudioSettingsOpen(true)}
+        autoPlaySimilar={autoPlaySimilarVibe}
+        onToggleAutoPlaySimilar={() => {
+          setAutoPlaySimilarVibe((prev) => {
+            const next = !prev;
+            showToast(next ? '✨ Same Vibe Autoplay ON' : 'Same Vibe Autoplay OFF', 'info');
+            return next;
+          });
+        }}
       />
 
       {/* Bottom Mobile Navigation (Matching Image 2) */}
@@ -1044,6 +1133,14 @@ export default function App() {
           setIsShareOpen(true);
         }}
         playingSourceName={playingSourceName}
+        autoPlaySimilar={autoPlaySimilarVibe}
+        onToggleAutoPlaySimilar={() => {
+          setAutoPlaySimilarVibe((prev) => {
+            const next = !prev;
+            showToast(next ? '✨ Same Vibe Autoplay ON' : 'Same Vibe Autoplay OFF', 'info');
+            return next;
+          });
+        }}
       />
 
       {/* Playlists Management Modal */}
@@ -1132,6 +1229,19 @@ export default function App() {
         }}
         isOpen={isProfileOpen}
         onClose={() => setIsProfileOpen(false)}
+        onOpenAuth={() => {
+          setIsProfileOpen(false);
+          setIsAuthOpen(true);
+        }}
+        onLogout={handleLogout}
+      />
+
+      {/* Cool OTP Login & Verification Modal */}
+      <AuthModal
+        isOpen={isAuthOpen}
+        onClose={() => setIsAuthOpen(false)}
+        onLoginSuccess={handleLoginSuccess}
+        showToast={showToast}
       />
 
       {/* Synced Lyrics Modal */}

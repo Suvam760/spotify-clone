@@ -29,7 +29,10 @@ export const Header = ({
   onSelectSearchFilter,
   sortBy = 'relevance',
   onSelectSortBy,
-  onOpenAudioSettings
+  onOpenAudioSettings,
+  user,
+  onOpenAuth,
+  onOpenProfile
 }) => {
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -293,6 +296,26 @@ export const Header = ({
           >
             <Compass size={20} />
           </button>
+
+          {user?.isLoggedIn ? (
+            <button
+              className="header-avatar-badge-btn"
+              onClick={onOpenProfile}
+              title={`Profile (${user.name})`}
+            >
+              <img src={user.avatar} alt={user.name} className="header-avatar-thumb" />
+              <span className="header-online-dot" />
+            </button>
+          ) : (
+            <button
+              className="header-signin-cta"
+              onClick={onOpenAuth}
+              title="Sign in with instant OTP"
+            >
+              <Sparkles size={14} color="#a855f7" />
+              <span>Sign In</span>
+            </button>
+          )}
         </div>
       </div>
 

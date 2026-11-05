@@ -29,6 +29,7 @@ export const HomeDashboard = ({
   onSelectAlbum,
   onOpenNotifications,
   onOpenProfile,
+  onOpenAuth,
   onSeeAllCategory
 }) => {
   const getGreeting = () => {
@@ -65,8 +66,14 @@ export const HomeDashboard = ({
           </button>
           <button
             className="home-profile-avatar-btn"
-            onClick={onOpenProfile}
-            title={user?.name || 'Your Profile'}
+            onClick={() => {
+              if (user?.isLoggedIn) {
+                onOpenProfile?.();
+              } else {
+                (onOpenAuth || onOpenProfile)?.();
+              }
+            }}
+            title={user?.isLoggedIn ? (user?.name || 'Your Profile') : 'Sign In with OTP'}
             aria-label="User Profile"
           >
             <img src={user?.avatar} alt={user?.name} className="home-avatar-img" />

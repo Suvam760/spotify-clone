@@ -14,7 +14,8 @@ import {
   ListFilter,
   Tv,
   Maximize2,
-  Sliders
+  Sliders,
+  Sparkles
 } from 'lucide-react';
 
 export const PlayerBar = ({
@@ -43,7 +44,9 @@ export const PlayerBar = ({
   isVideoVisible,
   onToggleVideo,
   onOpenFullScreen,
-  onOpenAudioSettings
+  onOpenAudioSettings,
+  autoPlaySimilar = true,
+  onToggleAutoPlaySimilar
 }) => {
   const formatTime = (seconds) => {
     if (isNaN(seconds) || seconds < 0) return '0:00';
@@ -59,19 +62,19 @@ export const PlayerBar = ({
     <div className="bottom-player-bar">
       {/* Left: Track Details (Clicking expands to Full-Screen Player!) */}
       <div className="player-track-info" onClick={onOpenFullScreen} title="Click to expand player">
-        <div className="player-thumb-wrap">
+        <div className={`player-thumb-wrap ${isPlaying ? 'is-playing' : ''}`}>
           <img
             src={currentTrack.cover}
             alt={currentTrack.title}
-            className="player-thumb"
+            className={`player-thumb ${isPlaying ? 'spinning-mini' : ''}`}
             onError={(e) => {
               e.currentTarget.onerror = null;
               e.currentTarget.src = 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?auto=format&fit=crop&w=600&q=80';
             }}
           />
           {isPlaying && (
-            <div className="player-thumb-visualizer">
-              <span /><span /><span />
+            <div className="player-thumb-visualizer" aria-hidden="true">
+              <span /><span /><span /><span /><span />
             </div>
           )}
         </div>
@@ -151,6 +154,17 @@ export const PlayerBar = ({
           >
             {repeatMode === 'one' ? <Repeat1 size={16} /> : <Repeat size={16} />}
           </button>
+
+          {onToggleAutoPlaySimilar && (
+            <button
+              className={`ctrl-btn vibe-autoplay-btn ${autoPlaySimilar ? 'active' : ''}`}
+              onClick={onToggleAutoPlaySimilar}
+              title={autoPlaySimilar ? 'Same-Vibe Infinite Autoplay: ACTIVE' : 'Same-Vibe Autoplay: OFF'}
+              aria-label="Toggle Same Vibe Autoplay"
+            >
+              <Sparkles size={16} />
+            </button>
+          )}
         </div>
 
         {/* Progress Scrubber */}

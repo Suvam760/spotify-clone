@@ -35,7 +35,8 @@ export const Sidebar = ({
   user,
   onOpenProfile,
   onOpenStats,
-  onOpenPlaylists
+  onOpenPlaylists,
+  onOpenAuth
 }) => (
   <>
     {isOpenMobile && <div className="sidebar-mobile-backdrop" onClick={onCloseMobile} />}
@@ -147,11 +148,21 @@ export const Sidebar = ({
         </div>
       </div>
 
-      <div className="user-profile-card" onClick={onOpenProfile} title="Edit Profile & Settings">
+      <div
+        className="user-profile-card"
+        onClick={() => {
+          if (user?.isLoggedIn) {
+            onOpenProfile?.();
+          } else {
+            onOpenAuth?.();
+          }
+        }}
+        title={user?.isLoggedIn ? "Edit Profile & Settings" : "Sign In with OTP"}
+      >
         <img src={user?.avatar} alt="" className="user-avatar" />
         <div className="user-info">
           <span className="user-name">{user?.name}</span>
-          <span className="user-plan">{user?.handle || 'Free Hi-Fi'}</span>
+          <span className="user-plan">{user?.isLoggedIn ? (user?.handle || 'Premium Hi-Fi') : 'Sign In with OTP'}</span>
         </div>
         <Menu size={16} className="profile-arrow" aria-hidden="true" />
       </div>

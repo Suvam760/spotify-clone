@@ -12,7 +12,8 @@ import {
   Tv,
   ListFilter,
   MessageSquareQuote,
-  Sliders
+  Sliders,
+  Sparkles
 } from 'lucide-react';
 
 export const FullScreenPlayer = ({
@@ -38,7 +39,9 @@ export const FullScreenPlayer = ({
   onToggleVideo,
   onOpenAudioSettings,
   onOpenShare,
-  playingSourceName = 'Vibe Flow'
+  playingSourceName = 'Vibe Flow',
+  autoPlaySimilar = true,
+  onToggleAutoPlaySimilar
 }) => {
   if (!isOpen || !currentTrack?.videoId) return null;
 
@@ -85,8 +88,26 @@ export const FullScreenPlayer = ({
           </div>
         </header>
 
-        {/* Big Artwork Squircle with glowing atmosphere */}
-        <div className="fs-artwork-stage">
+        {/* Big Artwork Squircle with glowing atmosphere & Holographic Vinyl */}
+        <div className={`fs-artwork-stage ${isPlaying ? 'is-playing' : ''}`}>
+          {/* Ambient Acoustic Pulsing Rings */}
+          {isPlaying && (
+            <div className="fs-acoustic-rings" aria-hidden="true">
+              <span className="fs-wave-ring ring-1" />
+              <span className="fs-wave-ring ring-2" />
+              <span className="fs-wave-ring ring-3" />
+            </div>
+          )}
+
+          {/* 3D Holographic Vinyl Record */}
+          <div className={`fs-vinyl-disc ${isPlaying ? 'spinning' : ''}`} aria-hidden="true">
+            <div className="vinyl-groove-lines" />
+            <div className="vinyl-center-label" style={{ backgroundImage: `url(${currentTrack.cover})` }}>
+              <div className="vinyl-center-spindle" />
+            </div>
+            <div className="vinyl-sheen-light" />
+          </div>
+
           <div className="fs-artwork-shadow" style={{ backgroundImage: `url(${currentTrack.cover})` }} />
           <div className="fs-artwork-card">
             <img src={currentTrack.cover} alt={currentTrack.title} className="fs-artwork-img" />
@@ -96,6 +117,20 @@ export const FullScreenPlayer = ({
               </div>
             )}
           </div>
+        </div>
+
+        {/* Dynamic Frequency Spectrum Visualizer */}
+        <div className={`fs-live-spectrum ${isPlaying ? 'active' : ''}`} aria-hidden="true">
+          {Array.from({ length: 28 }).map((_, i) => (
+            <span
+              key={i}
+              className="spectrum-bar"
+              style={{
+                animationDelay: `${(i * 0.045).toFixed(2)}s`,
+                animationDuration: `${(0.42 + (i % 6) * 0.08).toFixed(2)}s`
+              }}
+            />
+          ))}
         </div>
 
         {/* Track Metadata & Favorite */}
@@ -190,6 +225,17 @@ export const FullScreenPlayer = ({
           >
             {repeatMode === 'one' ? <Repeat1 size={22} /> : <Repeat size={22} />}
           </button>
+
+          {onToggleAutoPlaySimilar && (
+            <button
+              className={`fs-ctrl-btn fs-vibe-btn ${autoPlaySimilar ? 'active' : ''}`}
+              onClick={onToggleAutoPlaySimilar}
+              title={autoPlaySimilar ? 'Same-Vibe Infinite Autoplay: ACTIVE' : 'Same-Vibe Autoplay: OFF'}
+              aria-label="Toggle Same Vibe Autoplay"
+            >
+              <Sparkles size={21} />
+            </button>
+          )}
         </div>
 
         {/* Bottom Utility Bar */}

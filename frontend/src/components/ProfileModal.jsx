@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Check, Moon, Sun, Sparkles, X, ShieldCheck } from 'lucide-react';
+import { Check, Moon, Sun, Sparkles, X, ShieldCheck, LogOut, KeyRound } from 'lucide-react';
 
 export const ProfileModal = ({
   user,
@@ -7,7 +7,9 @@ export const ProfileModal = ({
   theme,
   onSelectTheme,
   isOpen,
-  onClose
+  onClose,
+  onOpenAuth,
+  onLogout
 }) => {
   const [name, setName] = useState(user?.name || 'Music Lover');
   const [handle, setHandle] = useState(user?.handle || '@musiclover');
@@ -122,12 +124,16 @@ export const ProfileModal = ({
             </div>
           </div>
 
-          {/* Membership Badge */}
+          {/* Membership & Auth Badge */}
           <div className="membership-box">
             <ShieldCheck size={18} color="#a855f7" />
             <div>
-              <h5>Nexa Premium · Lossless Hi-Fi</h5>
-              <p>Unlimited high bitrate streaming, zero ads, synchronized lyrics.</p>
+              <h5>{user?.isLoggedIn ? 'Nexa Verified Hi-Fi Member' : 'Guest Listener'}</h5>
+              <p>
+                {user?.isLoggedIn
+                  ? `Authenticated session active (${user.phone || user.email || user.handle})`
+                  : 'Sign in with your phone or email OTP for persistent cloud playlists.'}
+              </p>
             </div>
           </div>
 
@@ -136,8 +142,34 @@ export const ProfileModal = ({
               {saved ? <Check size={16} /> : null}
               <span>{saved ? 'Saved!' : 'Save Changes'}</span>
             </button>
+            {user?.isLoggedIn ? (
+              <button
+                type="button"
+                className="btn-outline-pill profile-logout-btn"
+                onClick={() => {
+                  onClose();
+                  onLogout?.();
+                }}
+                title="Log out from this device"
+              >
+                <LogOut size={15} />
+                <span>Log Out</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="btn-outline-pill profile-signin-btn"
+                onClick={() => {
+                  onClose();
+                  onOpenAuth?.();
+                }}
+              >
+                <KeyRound size={15} color="#a855f7" />
+                <span>Sign In (OTP)</span>
+              </button>
+            )}
             <button type="button" className="btn-outline-pill" onClick={onClose}>
-              Cancel
+              Close
             </button>
           </div>
         </form>
