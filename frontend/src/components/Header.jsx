@@ -186,7 +186,7 @@ export const Header = ({
             ref={inputRef}
             type="search"
             className="search-input"
-            placeholder="Search songs, artists, albums, or vibes…"
+            placeholder="Search songs, artists, albums…"
             value={searchQuery}
             onChange={(event) => {
               setSearchQuery(event.target.value);
@@ -270,7 +270,7 @@ export const Header = ({
 
           {onOpenAudioSettings && (
             <button
-              className="header-shortcut-btn"
+              className="header-shortcut-btn header-btn-audio"
               onClick={onOpenAudioSettings}
               title="Equalizer & Audio settings"
               aria-label="Audio settings"
@@ -281,7 +281,7 @@ export const Header = ({
 
           {onOpenShortcuts && (
             <button
-              className="header-shortcut-btn"
+              className="header-shortcut-btn header-btn-shortcuts"
               onClick={onOpenShortcuts}
               title="Keyboard shortcuts (Press ?)"
               aria-label="Keyboard shortcuts"
@@ -291,7 +291,7 @@ export const Header = ({
           )}
 
           <button
-            className="mobile-recommends-toggle-btn"
+            className="mobile-recommends-toggle-btn header-btn-compass"
             onClick={onToggleMobileRightSidebar}
             title="View mood mix"
             aria-label="Mood mix"
