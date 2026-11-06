@@ -45,6 +45,21 @@ npm start
 
 The backend serves the built frontend from `frontend/dist` on the configured `PORT`.
 
+## Deploy to Vercel (1-Click & Free Tier)
+
+This app is configured to deploy directly to [Vercel](https://vercel.com) with both the React frontend and Express Serverless API together under a single URL!
+
+1. Push this repository to your GitHub account: `https://github.com/Suvam760/spotify-clone`.
+2. Go to [vercel.com](https://vercel.com) and log in with GitHub.
+3. Click **Add New…** → **Project** and import `spotify-clone`.
+4. Vercel will automatically read `vercel.json`:
+   - **Framework Preset**: Other
+   - **Build Command**: `node scripts/build.js`
+   - **Output Directory**: `frontend/dist`
+5. Under **Environment Variables**, add:
+   - `YOUTUBE_API_KEY` = *your YouTube API key*
+6. Click **Deploy**. Vercel will build the frontend and deploy the Express API as a serverless function at `/api/*` on your free `https://your-project.vercel.app` domain.
+
 ## Deploy to Render (1-Click & Free Tier)
 
 This app is configured to deploy as a unified service on [Render](https://render.com) (the backend serves both the API and the optimized frontend build).

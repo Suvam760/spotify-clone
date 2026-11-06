@@ -12,5 +12,10 @@
     "dev:frontend": "npm --prefix frontend run dev",
     "build": "node scripts/build.js",
     "start": "node backend/server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^4.22.2"
   }
 }
