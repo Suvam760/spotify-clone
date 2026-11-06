@@ -224,7 +224,9 @@ export const Header = ({
               <X size={16} />
             </button>
           ) : (
-            <div className="shortcut-badge" onClick={() => inputRef.current?.focus()}><span>Ctrl K</span></div>
+            <div className="shortcut-badge" onClick={() => inputRef.current?.focus()} title="Press Ctrl+K to search">
+              <span className="shortcut-badge-text">Ctrl K</span>
+            </div>
           )}
 
           {isSearching && <div className="search-spinner" aria-label="Searching" />}
@@ -258,7 +260,7 @@ export const Header = ({
         {/* Filter toggle and utility buttons */}
         <div className="header-right-actions">
           <button
-            className={`header-filter-btn ${showFilterBar ? 'active' : ''}`}
+            className={`header-shortcut-btn header-filter-btn ${showFilterBar ? 'active' : ''}`}
             onClick={() => setShowFilterBar((prev) => !prev)}
             title="Search filters & sorting"
             aria-label="Search filters"
@@ -281,7 +283,7 @@ export const Header = ({
             <button
               className="header-shortcut-btn"
               onClick={onOpenShortcuts}
-              title="Keyboard shortcuts"
+              title="Keyboard shortcuts (Press ?)"
               aria-label="Keyboard shortcuts"
             >
               <Keyboard size={18} />
@@ -297,6 +299,8 @@ export const Header = ({
             <Compass size={20} />
           </button>
 
+          <div className="header-action-divider" />
+
           {user?.isLoggedIn ? (
             <button
               className="header-avatar-badge-btn"
@@ -304,6 +308,7 @@ export const Header = ({
               title={`Profile (${user.name})`}
             >
               <img src={user.avatar} alt={user.name} className="header-avatar-thumb" />
+              <span className="header-user-name">{user.name}</span>
               <span className="header-online-dot" />
             </button>
           ) : (
@@ -312,7 +317,7 @@ export const Header = ({
               onClick={onOpenAuth}
               title="Sign in with instant OTP"
             >
-              <Sparkles size={14} color="#a855f7" />
+              <Sparkles size={14} className="signin-sparkle-icon" />
               <span>Sign In</span>
             </button>
           )}
@@ -352,19 +357,26 @@ export const Header = ({
       {/* Recent search history chips */}
       {searchHistory.length > 0 && searchQuery.length === 0 && (
         <div className="search-history-chips-row">
-          <History size={13} color="#94a3b8" />
-          <span className="history-label">Recent:</span>
-          {searchHistory.slice(0, 5).map((q, idx) => (
-            <button
-              key={`${q}-${idx}`}
-              className="history-chip"
-              onClick={() => onSelectHistoryItem?.(q)}
-            >
-              <span>{q}</span>
-            </button>
-          ))}
+          <div className="history-label-group">
+            <History size={13} className="history-icon" />
+            <span className="history-label">Recent</span>
+          </div>
+          <div className="history-chips-list">
+            {searchHistory.slice(0, 6).map((q, idx) => (
+              <button
+                key={`${q}-${idx}`}
+                className="history-chip"
+                onClick={() => onSelectHistoryItem?.(q)}
+                title={`Search "${q}"`}
+              >
+                <span>{q}</span>
+              </button>
+            ))}
+          </div>
           {onClearHistory && (
-            <button className="clear-history-text-btn" onClick={onClearHistory}>Clear</button>
+            <button className="clear-history-text-btn" onClick={onClearHistory} title="Clear recent searches">
+              Clear
+            </button>
           )}
         </div>
       )}
