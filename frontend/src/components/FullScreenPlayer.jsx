@@ -12,7 +12,6 @@ import {
   Tv,
   ListFilter,
   MessageSquareQuote,
-  Sliders,
   Sparkles
 } from 'lucide-react';
 
@@ -37,7 +36,6 @@ export const FullScreenPlayer = ({
   onToggleQueue,
   isVideoVisible,
   onToggleVideo,
-  onOpenAudioSettings,
   onOpenShare,
   playingSourceName = 'Vibe Flow',
   autoPlaySimilar = true,
@@ -69,14 +67,6 @@ export const FullScreenPlayer = ({
           </div>
 
           <div className="fs-top-actions">
-            <button
-              className="fs-icon-btn"
-              onClick={onOpenAudioSettings}
-              title="Audio settings & Equalizer"
-              aria-label="Audio settings"
-            >
-              <Sliders size={20} />
-            </button>
             <button
               className="fs-icon-btn"
               onClick={() => onOpenShare?.(currentTrack)}

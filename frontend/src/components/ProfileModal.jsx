@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Check, Moon, Sun, Sparkles, X, ShieldCheck, LogOut, KeyRound } from 'lucide-react';
+import { Check, Moon, Sun, Sparkles, X, ShieldCheck, LogOut, KeyRound, Camera } from 'lucide-react';
+import { ProfilePictureModal } from './ProfilePictureModal';
 
 export const ProfileModal = ({
   user,
@@ -15,6 +16,7 @@ export const ProfileModal = ({
   const [handle, setHandle] = useState(user?.handle || '@musiclover');
   const [avatar, setAvatar] = useState(user?.avatar || '');
   const [saved, setSaved] = useState(false);
+  const [isAvatarPickerOpen, setIsAvatarPickerOpen] = useState(false);
 
   if (!isOpen) return null;
 
@@ -56,9 +58,29 @@ export const ProfileModal = ({
         <form onSubmit={handleSave} className="profile-edit-form">
           {/* Avatar Picker */}
           <div className="profile-avatar-select-block">
-            <img src={avatar || user?.avatar} alt="" className="current-profile-avatar" />
-            <div>
-              <span className="avatar-pick-label">Select Avatar</span>
+            <div
+              className="current-profile-avatar-wrap"
+              onClick={() => setIsAvatarPickerOpen(true)}
+              title="Click to open Avatar Studio & Upload"
+            >
+              <img src={avatar || user?.avatar} alt="" className="current-profile-avatar" />
+              <div className="avatar-change-overlay">
+                <Camera size={18} />
+                <span>Change</span>
+              </div>
+            </div>
+            <div className="avatar-select-info">
+              <div className="avatar-label-row">
+                <span className="avatar-pick-label">Profile Avatar</span>
+                <button
+                  type="button"
+                  className="avatar-edit-badge-btn"
+                  onClick={() => setIsAvatarPickerOpen(true)}
+                >
+                  <Camera size={13} />
+                  <span>Avatar Studio & Upload</span>
+                </button>
+              </div>
               <div className="avatar-thumbs-row">
                 {sampleAvatars.map((url, i) => (
                   <img
@@ -173,6 +195,17 @@ export const ProfileModal = ({
             </button>
           </div>
         </form>
+
+        {/* Dedicated Profile Picture Selection & Upload Modal */}
+        <ProfilePictureModal
+          isOpen={isAvatarPickerOpen}
+          onClose={() => setIsAvatarPickerOpen(false)}
+          currentAvatar={avatar || user?.avatar}
+          userName={name}
+          onSelectAvatar={(newUrl) => {
+            setAvatar(newUrl);
+          }}
+        />
       </div>
     </div>
   );

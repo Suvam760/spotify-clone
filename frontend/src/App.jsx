@@ -24,7 +24,6 @@ import { YouTubePlayer } from './components/YouTubePlayer';
 import { PlaylistModal } from './components/PlaylistModal';
 import { ArtistModal } from './components/ArtistModal';
 import { AlbumModal } from './components/AlbumModal';
-import { AudioSettingsModal } from './components/AudioSettingsModal';
 import { StatsModal } from './components/StatsModal';
 import { ShareModal } from './components/ShareModal';
 import { ProfileModal } from './components/ProfileModal';
@@ -141,12 +140,6 @@ export default function App() {
   const [repeatMode, setRepeatMode] = useState('off'); // 'off' | 'all' | 'one'
   const smartMoodMode = true;
 
-  // Audio settings
-  const [equalizerPreset, setEqualizerPreset] = useState('bass');
-  const [playbackSpeed, setPlaybackSpeed] = useState(1.0);
-  const [sleepTimerRemaining, setSleepTimerRemaining] = useState(0);
-  const [audioQuality, setAudioQuality] = useState('Lossless Hi-Fi (320kbps)');
-
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState(null);
@@ -171,7 +164,6 @@ export default function App() {
   const [activeArtist, setActiveArtist] = useState(null);
   const [isAlbumModalOpen, setIsAlbumModalOpen] = useState(false);
   const [activeAlbum, setActiveAlbum] = useState(null);
-  const [isAudioSettingsOpen, setIsAudioSettingsOpen] = useState(false);
   const [isStatsOpen, setIsStatsOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [shareItem, setShareItem] = useState(null);
@@ -245,33 +237,6 @@ export default function App() {
     loadMood('romantic');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  // Sleep Timer countdown
-  useEffect(() => {
-    if (!sleepTimerRemaining || sleepTimerRemaining <= 0) return undefined;
-    const interval = window.setInterval(() => {
-      setSleepTimerRemaining((prev) => {
-        if (prev <= 1) {
-          playerRef.current?.pauseVideo?.();
-          setIsPlaying(false);
-          showToast('Sleep timer finished: Playback paused', 'info');
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => window.clearInterval(interval);
-  }, [sleepTimerRemaining, showToast]);
-
-  const handleSetSleepTimer = (minutes) => {
-    if (minutes === 0) {
-      setSleepTimerRemaining(0);
-      showToast('Sleep timer turned off', 'info');
-    } else {
-      setSleepTimerRemaining(minutes * 60);
-      showToast(`Sleep timer set for ${minutes} minutes`, 'info');
-    }
-  };
 
   const rememberTrack = (track) => {
     setRecentlyPlayed((previous) => [track, ...previous.filter((item) => item.id !== track.id)].slice(0, 30));
@@ -524,16 +489,6 @@ export default function App() {
     });
   };
 
-  const handleSelectPlaybackSpeed = (speed) => {
-    setPlaybackSpeed(speed);
-    try {
-      playerRef.current?.setPlaybackRate?.(speed);
-      showToast(`Playback speed: ${speed}x`, 'info');
-    } catch {
-      showToast(`Playback speed set to ${speed}x`, 'info');
-    }
-  };
-
   // Playlist management
   const handleCreatePlaylist = (newPl) => {
     const created = {
@@ -676,7 +631,6 @@ export default function App() {
         setIsPlaylistModalOpen(false);
         setIsArtistModalOpen(false);
         setIsAlbumModalOpen(false);
-        setIsAudioSettingsOpen(false);
         setIsStatsOpen(false);
         setIsShareOpen(false);
         setIsProfileOpen(false);
@@ -759,7 +713,6 @@ export default function App() {
             onSelectSearchFilter={setSearchFilter}
             sortBy={sortBy}
             onSelectSortBy={setSortBy}
-            onOpenAudioSettings={() => setIsAudioSettingsOpen(true)}
             user={user}
             onOpenAuth={() => setActiveTab('login')}
             onOpenProfile={() => setIsProfileOpen(true)}
@@ -1034,6 +987,8 @@ export default function App() {
           onAddToQueue={handleAddToQueue}
           isOpenMobile={isMobileRightSidebarOpen}
           onCloseMobile={() => setIsMobileRightSidebarOpen(false)}
+          user={user}
+          onOpenProfile={() => setIsProfileOpen(true)}
         />
       </div>
 
@@ -1085,7 +1040,6 @@ export default function App() {
         onOpenFullScreen={() => {
           if (currentTrack.videoId) setIsFullScreenOpen(true);
         }}
-        onOpenAudioSettings={() => setIsAudioSettingsOpen(true)}
         autoPlaySimilar={autoPlaySimilarVibe}
         onToggleAutoPlaySimilar={() => {
           setAutoPlaySimilarVibe((prev) => {
@@ -1137,7 +1091,6 @@ export default function App() {
         }}
         isVideoVisible={isVideoVisible}
         onToggleVideo={() => setIsVideoVisible((v) => !v)}
-        onOpenAudioSettings={() => setIsAudioSettingsOpen(true)}
         onOpenShare={(t) => {
           setShareItem(t);
           setIsShareOpen(true);
@@ -1187,26 +1140,6 @@ export default function App() {
         isOpen={isAlbumModalOpen}
         onClose={() => setIsAlbumModalOpen(false)}
         onPlayAlbum={handlePlayAlbum}
-      />
-
-      {/* Audio Settings & Equalizer Modal */}
-      <AudioSettingsModal
-        isOpen={isAudioSettingsOpen}
-        onClose={() => setIsAudioSettingsOpen(false)}
-        equalizerPreset={equalizerPreset}
-        onSelectEqualizer={(p) => {
-          setEqualizerPreset(p);
-          showToast(`Equalizer: ${p.toUpperCase()} applied`, 'info');
-        }}
-        playbackSpeed={playbackSpeed}
-        onSelectPlaybackSpeed={handleSelectPlaybackSpeed}
-        sleepTimerRemaining={sleepTimerRemaining}
-        onSetSleepTimer={handleSetSleepTimer}
-        audioQuality={audioQuality}
-        onSelectAudioQuality={(q) => {
-          setAudioQuality(q);
-          showToast(`Audio quality: ${q}`, 'info');
-        }}
       />
 
       {/* Listening Insights / Stats Modal */}

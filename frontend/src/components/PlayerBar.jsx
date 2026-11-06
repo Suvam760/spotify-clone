@@ -14,7 +14,6 @@ import {
   ListFilter,
   Tv,
   Maximize2,
-  Sliders,
   Sparkles
 } from 'lucide-react';
 
@@ -44,7 +43,6 @@ export const PlayerBar = ({
   isVideoVisible,
   onToggleVideo,
   onOpenFullScreen,
-  onOpenAudioSettings,
   autoPlaySimilar = true,
   onToggleAutoPlaySimilar
 }) => {
@@ -209,18 +207,6 @@ export const PlayerBar = ({
         >
           <Maximize2 size={17} />
         </button>
-
-        {/* Audio Equalizer & Settings */}
-        {onOpenAudioSettings && (
-          <button
-            className="utility-btn audio-settings-btn"
-            onClick={onOpenAudioSettings}
-            title="Equalizer & Playback settings"
-            aria-label="Audio settings"
-          >
-            <Sliders size={17} />
-          </button>
-        )}
 
         {/* Toggle Video Screen */}
         <button

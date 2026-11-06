@@ -12,9 +12,13 @@ export const RightSidebar = ({
   onSeeAllFavorites,
   onAddToQueue,
   isOpenMobile,
-  onCloseMobile
+  onCloseMobile,
+  user,
+  onOpenProfile
 }) => {
   const selectedMood = MOODS.find((mood) => mood.id === activeMood) || MOODS[0];
+  const userAvatar = user?.avatar || CURRENT_USER.avatar;
+  const userName = user?.name || CURRENT_USER.name;
 
   return (
     <>
@@ -24,8 +28,13 @@ export const RightSidebar = ({
           <button className="sidebar-mobile-close-btn" onClick={onCloseMobile} aria-label="Close recommendations">
             <X size={20} />
           </button>
-          <div className="topbar-avatar-wrap" title={CURRENT_USER.name}>
-            <img src={CURRENT_USER.avatar} alt="" className="topbar-avatar" />
+          <div
+            className="topbar-avatar-wrap"
+            title={`${userName} (Click to edit profile)`}
+            onClick={onOpenProfile}
+            style={{ cursor: onOpenProfile ? 'pointer' : 'default' }}
+          >
+            <img src={userAvatar} alt="" className="topbar-avatar" />
             <span className="online-badge" />
           </div>
         </div>

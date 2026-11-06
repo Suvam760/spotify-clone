@@ -9,8 +9,7 @@ import {
   Sparkles,
   X,
   History,
-  SlidersHorizontal,
-  Sliders
+  SlidersHorizontal
 } from 'lucide-react';
 import { apiGet } from '../lib/api';
 
@@ -29,7 +28,6 @@ export const Header = ({
   onSelectSearchFilter,
   sortBy = 'relevance',
   onSelectSortBy,
-  onOpenAudioSettings,
   user,
   onOpenAuth,
   onOpenProfile
@@ -267,17 +265,6 @@ export const Header = ({
           >
             <SlidersHorizontal size={17} />
           </button>
-
-          {onOpenAudioSettings && (
-            <button
-              className="header-shortcut-btn header-btn-audio"
-              onClick={onOpenAudioSettings}
-              title="Equalizer & Audio settings"
-              aria-label="Audio settings"
-            >
-              <Sliders size={18} />
-            </button>
-          )}
 
           {onOpenShortcuts && (
             <button
