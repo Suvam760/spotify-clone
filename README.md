@@ -2,6 +2,12 @@
 
 Nexa Music is a responsive React music-discovery app with a separate Express API. Search across songs, artists, and genres; browse categories; choose a mood; save liked tracks; and keep a queue in the selected mood.
 
+## 🚀 Live Production Links (Vercel)
+
+- **Frontend App**: [https://frontend-five-rho-teo2ethbhd.vercel.app](https://frontend-five-rho-teo2ethbhd.vercel.app)
+- **Backend API (Serverless)**: [https://backend-five-ashy-91.vercel.app](https://backend-five-ashy-91.vercel.app)
+- **API Health Check**: [https://backend-five-ashy-91.vercel.app/api/health](https://backend-five-ashy-91.vercel.app/api/health)
+
 ## Requirements
 
 - Node.js 20.19 or newer

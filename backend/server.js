@@ -40,14 +40,20 @@ function isOriginAllowed(origin) {
 }
 
 app.use(cors({
-  origin(origin, callback) {
-    if (isOriginAllowed(origin)) return callback(null, true);
-    // Allow for smooth local and dev playback
-    return callback(null, true);
-  },
-  methods: ['GET', 'POST', 'OPTIONS'],
+  origin: true,
+  methods: ['GET', 'POST', 'OPTIONS', 'HEAD'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
   credentials: false
 }));
+app.options('*', cors());
+app.use((req, res, next) => {
+  if (req.url.startsWith('/api/index.js')) {
+    req.url = req.url.replace('/api/index.js', '') || '/';
+  } else if (req.url.startsWith('/server.js')) {
+    req.url = req.url.replace('/server.js', '') || '/';
+  }
+  next();
+});
 app.use(express.json({ limit: '200kb' }));
 
 class HttpError extends Error {
@@ -543,9 +549,11 @@ const TRENDING_QUERIES = {
 };
 
 // -------------------------------------------------------------
-// API ROUTES
+// API ROUTER & SERVICES
 // -------------------------------------------------------------
-app.get('/api/health', (_req, res) => {
+const apiRouter = express.Router();
+
+apiRouter.get('/health', (_req, res) => {
   res.json({
     success: true,
     service: 'Nexa Music API',
@@ -561,7 +569,7 @@ app.get('/api/health', (_req, res) => {
 // -------------------------------------------------------------
 const otpStore = new Map();
 
-app.post('/api/auth/send-otp', (req, res) => {
+apiRouter.post('/auth/send-otp', (req, res) => {
   const { identifier, method, name } = req.body || {};
   const cleaned = (identifier || '').trim();
   if (!cleaned) {
@@ -589,7 +597,7 @@ app.post('/api/auth/send-otp', (req, res) => {
   });
 });
 
-app.post('/api/auth/verify-otp', (req, res) => {
+apiRouter.post('/auth/verify-otp', (req, res) => {
   const { identifier, code, name } = req.body || {};
   const cleaned = (identifier || '').trim().toLowerCase();
   const inputCode = (code || '').trim();
@@ -629,7 +637,7 @@ app.post('/api/auth/verify-otp', (req, res) => {
   });
 });
 
-app.get('/api/search', async (req, res, next) => {
+apiRouter.get('/search', async (req, res, next) => {
   try {
     const query = String(req.query.q || '').trim();
     if (query.length < 2) {
@@ -643,7 +651,7 @@ app.get('/api/search', async (req, res, next) => {
   }
 });
 
-app.get('/api/suggest', async (req, res) => {
+apiRouter.get('/suggest', async (req, res) => {
   const query = String(req.query.q || '').trim().replace(/\s+/g, ' ');
   if (query.length < 2) return res.json({ success: true, suggestions: [] });
 
@@ -689,7 +697,7 @@ app.get('/api/suggest', async (req, res) => {
   return res.json({ success: true, suggestions });
 });
 
-app.get('/api/mood', async (req, res, next) => {
+apiRouter.get('/mood', async (req, res, next) => {
   try {
     const mood = String(req.query.mood || 'romantic').trim().toLowerCase();
     const preset = MOOD_PRESETS[mood] || MOOD_PRESETS.romantic;
@@ -706,7 +714,7 @@ app.get('/api/mood', async (req, res, next) => {
   }
 });
 
-app.get('/api/trending', async (req, res, next) => {
+apiRouter.get('/trending', async (req, res, next) => {
   try {
     const category = String(req.query.category || 'trending').trim().toLowerCase();
     const preset = TRENDING_QUERIES[category] || TRENDING_QUERIES.trending;
@@ -723,7 +731,7 @@ app.get('/api/trending', async (req, res, next) => {
   }
 });
 
-app.get('/api/lyrics', async (req, res, next) => {
+apiRouter.get('/lyrics', async (req, res, next) => {
   try {
     const rawTitle = String(req.query.title || '').trim().slice(0, 180);
     const rawArtist = String(req.query.artist || '').trim().slice(0, 120);
@@ -805,6 +813,10 @@ app.get('/api/lyrics', async (req, res, next) => {
   }
 });
 
+// Mount API router at both /api and / to handle both direct and rewritten Vercel requests
+app.use('/api', apiRouter);
+app.use('/', apiRouter);
+
 app.use('/api', (_req, res) => {
   res.status(404).json({ success: false, message: 'API route not found.' });
 });
@@ -814,10 +826,26 @@ if (fs.existsSync(frontendDist)) app.use(express.static(frontendDist, { maxAge: 
 
 app.get('*', (req, res) => {
   const indexFile = path.join(frontendDist, 'index.html');
-  if (!fs.existsSync(indexFile)) {
-    return res.status(503).send('Frontend build not found. Run npm run build from the project root.');
+  if (fs.existsSync(indexFile)) {
+    return res.sendFile(indexFile);
   }
-  return res.sendFile(indexFile);
+  // Standalone API Mode (Vercel Backend / Production Serverless)
+  return res.json({
+    success: true,
+    service: 'Nexa Music API (Vercel Serverless Production)',
+    status: 'online',
+    engine: YOUTUBE_API_KEY ? 'youtube_data_api_v3' : 'youtube_intelligent_engine',
+    endpoints: {
+      health: '/api/health',
+      search: '/api/search?q={query}&limit={1-25}',
+      trending: '/api/trending?category={category}',
+      mood: '/api/mood?mood={mood}',
+      lyrics: '/api/lyrics?title={title}&artist={artist}',
+      suggestions: '/api/suggest?q={query}',
+      sendOtp: 'POST /api/auth/send-otp',
+      verifyOtp: 'POST /api/auth/verify-otp'
+    }
+  });
 });
 
 app.use((error, _req, res, _next) => {
@@ -846,4 +874,9 @@ if (require.main === module) {
   });
 }
 
-module.exports = { app, searchMusic, formatDuration, parseIsoDuration };
+module.exports = app;
+module.exports.app = app;
+module.exports.default = app;
+module.exports.searchMusic = searchMusic;
+module.exports.formatDuration = formatDuration;
+module.exports.parseIsoDuration = parseIsoDuration;
